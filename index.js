@@ -12,12 +12,12 @@ const io = new Server(server, {
   }
 });
 
-// Health check (Railway needs this)
+/* 🔹 ROOT ROUTE (THIS FIXES "Not Found") */
 app.get("/", (req, res) => {
-  res.send("Aura Voice Server OK");
+  res.send("Aura Voice Server is running");
 });
 
-// Socket.io logic
+/* 🔹 SOCKET.IO */
 io.on("connection", (socket) => {
   console.log("User connected:", socket.id);
 
@@ -26,10 +26,10 @@ io.on("connection", (socket) => {
     socket.to(roomId).emit("user-joined", socket.id);
   });
 
-  socket.on("signal", (data) => {
-    socket.to(data.roomId).emit("signal", {
-      from: socket.id,
-      signal: data.signal
+  socket.on("signal", ({ roomId, data }) => {
+    socket.to(roomId).emit("signal", {
+      sender: socket.id,
+      data
     });
   });
 
@@ -38,8 +38,8 @@ io.on("connection", (socket) => {
   });
 });
 
-// IMPORTANT: Railway port
-const PORT = process.env.PORT || 3001;
+/* 🔹 PORT (Railway-safe) */
+const PORT = process.env.PORT || 8080;
 server.listen(PORT, "0.0.0.0", () => {
-  console.log("Voice server running on port", PORT);
+  console.log(`Voice server running on port ${PORT}`);
 });
