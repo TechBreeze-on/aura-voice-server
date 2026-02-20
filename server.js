@@ -1,6 +1,6 @@
-import express from "express";
-import http from "http";
-import { Server } from "socket.io";
+const express = require("express");
+const http = require("http");
+const { Server } = require("socket.io");
 
 const app = express();
 const server = http.createServer(app);
@@ -8,42 +8,28 @@ const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
     origin: "*",
-  },
+    methods: ["GET", "POST"]
+  }
 });
 
-const rooms = {}; // roomId -> Set(socketId)
-
 io.on("connection", (socket) => {
-  console.log("🟢 Connected:", socket.id);
+  console.log("User connected:", socket.id);
 
-  socket.on("join-room", ({ roomId }) => {
+  socket.on("join-room", (roomId) => {
     socket.join(roomId);
-
-    if (!rooms[roomId]) rooms[roomId] = new Set();
-    rooms[roomId].add(socket.id);
-
-    const others = [...rooms[roomId]].filter(id => id !== socket.id);
-
-    socket.emit("existing-users", others);
     socket.to(roomId).emit("user-joined", socket.id);
   });
 
-  socket.on("signal", ({ to, data }) => {
-    io.to(to).emit("signal", { from: socket.id, data });
+  socket.on("signal", ({ roomId, data }) => {
+    socket.to(roomId).emit("signal", data);
   });
 
   socket.on("disconnect", () => {
-    for (const roomId in rooms) {
-      if (rooms[roomId].has(socket.id)) {
-        rooms[roomId].delete(socket.id);
-        socket.to(roomId).emit("user-left", socket.id);
-        if (rooms[roomId].size === 0) delete rooms[roomId];
-      }
-    }
-    console.log("🔴 Disconnected:", socket.id);
+    console.log("User disconnected:", socket.id);
   });
 });
 
-server.listen(3001, () => {
-  console.log("🚀 Voice server running on http://0.0.0.0:3001");
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => {
+  console.log("Voice server running on port", PORT);
 });
