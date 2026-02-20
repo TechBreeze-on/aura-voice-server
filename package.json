@@ -5,7 +5,6 @@
   "version": "0.0.1",
   "type": "module",
   "scripts": {
-    "start": "node server.js"
     "dev": "vite",
     "build": "vite build",
     "electron": "electron ."
