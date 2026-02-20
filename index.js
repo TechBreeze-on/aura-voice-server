@@ -12,12 +12,11 @@ const io = new Server(server, {
   }
 });
 
-/* 🔹 ROOT ROUTE (THIS FIXES "Not Found") */
+// 👇 THIS FIXES THE 404
 app.get("/", (req, res) => {
-  res.send("Aura Voice Server is running");
+  res.send("Aura Voice Server is running 🚀");
 });
 
-/* 🔹 SOCKET.IO */
 io.on("connection", (socket) => {
   console.log("User connected:", socket.id);
 
@@ -26,9 +25,9 @@ io.on("connection", (socket) => {
     socket.to(roomId).emit("user-joined", socket.id);
   });
 
-  socket.on("signal", ({ roomId, data }) => {
-    socket.to(roomId).emit("signal", {
-      sender: socket.id,
+  socket.on("signal", ({ to, data }) => {
+    io.to(to).emit("signal", {
+      from: socket.id,
       data
     });
   });
@@ -38,8 +37,12 @@ io.on("connection", (socket) => {
   });
 });
 
-/* 🔹 PORT (Railway-safe) */
 const PORT = process.env.PORT || 8080;
-server.listen(PORT, "0.0.0.0", () => {
+
+app.get("/", (req, res) => {
+  res.send("Aura Voice Server is running 🚀");
+});
+
+server.listen(PORT, () => {
   console.log(`Voice server running on port ${PORT}`);
 });
